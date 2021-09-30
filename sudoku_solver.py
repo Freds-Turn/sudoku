@@ -1,6 +1,7 @@
 import math
 from typing import DefaultDict
 
+NUMBERS = (1, 2, 3, 4, 5, 6, 7, 8, 9)
 GRID = [
     [0, 6, 0, 3, 0, 1, 0, 0, 4],
     [0, 0, 0, 0, 0, 0, 0, 9, 0],
@@ -38,20 +39,20 @@ def get_quadrant_index(row, col):
     return quadrant_row_start + quadrant_col
 
 
-def add_to_dict(dict_ref, index, value):
+def add_to_container(container_dict, index, value):
     if value == 0:
         return
-    dict_ref[index].add(value)
+    container_dict[index].add(value)
 
 
 def update_containers(containers, grid=GRID):
     for row, row_list in enumerate(grid):
         for col, value in enumerate(row_list):
-            add_to_dict(containers["rows"], row, value)
-            add_to_dict(containers["cols"], col, value)
+            add_to_container(containers["rows"], row, value)
+            add_to_container(containers["cols"], col, value)
             quad_index = get_quadrant_index(row, col)
-            print(quad_index)
-            add_to_dict(containers["quads"], quad_index, value)
+            # print(quad_index)
+            add_to_container(containers["quads"], quad_index, value)
 
 
 def main():
