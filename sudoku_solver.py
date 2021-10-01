@@ -8,7 +8,7 @@ QUADRANT_LENGTH = 3
 CONTAINER_LENGTH = QUADRANT_LENGTH ** 2
 
 
-NUMBERS = tuple(range(1, CONTAINER_LENGTH + 1))
+NUMBERS = list(range(1, CONTAINER_LENGTH + 1))
 GRID53 = [
     [0, 6, 7, 0, 0, 8, 0, 0, 0],
     [1, 0, 0, 0, 9, 0, 4, 0, 0],
@@ -96,7 +96,6 @@ def update_containers(containers, grid=GRID):
             add_to_container(containers["rows"], row, value)
             add_to_container(containers["cols"], col, value)
             quad_index = get_quadrant_index(row, col)
-            # print(quad_index)
             add_to_container(containers["quads"], quad_index, value)
 
 
@@ -152,8 +151,8 @@ def fill_hole_in_range(row_range, col_range, hole_grid, number, grid=GRID):
         for col in col_range:
             if hole_grid[row][col] == False:
                 grid[row][col] = number
-                pprint(grid)
-                print(number)
+                # pprint(grid)
+                # print(number)
                 time.sleep(0.1)
 
 
@@ -208,14 +207,54 @@ def get_new_containers():
     return {"quads": quadrants, "rows": rows, "cols": columns}
 
 
+def find_potential_numbers(containers, row, col):
+    eliminated_set = set()
+    quad_index = get_quadrant_index(row, col)
+
+    eliminated_set = (
+        containers["rows"][row]
+        + containers["cols"][col]
+        + containers["quads"][quad_index]
+    )
+    eliminated_set = set(eliminated_set)
+
+    potentials = copy.copy(NUMBERS)
+    for eliminated_number in eliminated_set:
+        potentials.remove(eliminated_number)
+    return potentials
+
+
+def eliminate(containers, grid=GRID):
+    potential_grid = copy.deepcopy(grid)
+    for row, row_list in enumerate(grid):
+        for col, value in enumerate(row_list):
+            if value == 0:
+                potentials = find_potential_numbers(containers, row, col)
+                if len(potentials) == 1:
+                    grid[row][col] = potentials[0]
+                    potential_grid[row][col] = potentials[0]
+                else:
+                    potential_grid[row][col] = potentials
+
+
 def main():
     containers = get_new_containers()
-    last_grid = None
-    while last_grid != GRID:
-        last_grid = copy.deepcopy(GRID)
-        update_containers(containers)
-        slice_and_dice_all_numbers(containers)
-        pprint(GRID)
+    for _ in range(2):
+        last_grid = None
+        while last_grid != GRID:
+            last_grid = copy.deepcopy(GRID)
+            update_containers(containers)
+            slice_and_dice_all_numbers(containers)
+            print("slice and dice round:")
+            pprint(GRID)
+
+        last_grid = None
+        while last_grid != GRID:
+            last_grid = copy.deepcopy(GRID)
+            update_containers(containers)
+            eliminate(containers)
+            print("elimination round:")
+            pprint(GRID)
 
 
 if __name__ == "__main__":
