@@ -80,23 +80,30 @@ def get_quadrant_index(row, col):
 
 
 def add_to_container(container_dict, index, value):
-    if value == 0 or value == False:
-        return
     container_dict[index].append(value)
 
 
-def in_container(container_dict, index, value):
-    if value in container_dict[index]:
-        return True
-
-
-def update_containers(containers, grid=GRID):
+def update_slice_and_dice_containers(containers, grid=GRID):
     for row, row_list in enumerate(grid):
         for col, value in enumerate(row_list):
+            if value == 0 or value == False:
+                continue
             add_to_container(containers["rows"], row, value)
             add_to_container(containers["cols"], col, value)
             quad_index = get_quadrant_index(row, col)
             add_to_container(containers["quads"], quad_index, value)
+
+
+def update_elimination_containers(elimination_containers, elimination_grid):
+    for row, row_list in enumerate(elimination_grid):
+        for col, option_list in enumerate(row_list):
+            if not isinstance(option_list, list):
+                continue
+            option_list.sort()
+            elimination_containers["rows"][row][(row, col)] = option_list
+            elimination_containers["cols"][col][(row, col)] = option_list
+            quad_index = get_quadrant_index(row, col)
+            elimination_containers["quads"][quad_index][(row, col)] = option_list
 
 
 def build_false_grid(grid_size=CONTAINER_LENGTH):
@@ -107,6 +114,11 @@ def build_false_grid(grid_size=CONTAINER_LENGTH):
             row.append(False)
         grid.append(row)
     return grid
+
+
+def in_container(container_dict, index, value):
+    if value in container_dict[index]:
+        return True
 
 
 def get_slice_and_dice_grid(containers, target_number, grid=GRID):
@@ -156,22 +168,22 @@ def fill_hole_in_range(row_range, col_range, hole_grid, number, grid=GRID):
                 time.sleep(0.1)
 
 
-def fill_empty_quad_value(index, hole_grid, number):
+def get_quad_range(index):
     row_range = get_quadrant_row_range(index)
     col_range = get_quadrant_col_range(index)
-    fill_hole_in_range(row_range, col_range, hole_grid, number)
+    return row_range, col_range
 
 
-def fill_empty_row_value(index, hole_grid, number):
+def get_row_range(index):
     row_range = tuple(range(index, index + 1))
     col_range = tuple(range(CONTAINER_LENGTH))
-    fill_hole_in_range(row_range, col_range, hole_grid, number)
+    return row_range, col_range
 
 
-def fill_empty_column_value(index, hole_grid, number):
+def get_column_range(index):
     row_range = tuple(range(CONTAINER_LENGTH))
     col_range = tuple(range(index, index + 1))
-    fill_hole_in_range(row_range, col_range, hole_grid, number)
+    return row_range, col_range
 
 
 def fill_holes(slice_and_dice_containers, hole_grid, target_number):
@@ -180,15 +192,15 @@ def fill_holes(slice_and_dice_containers, hole_grid, target_number):
             # check if there is a container with only one hole
             if len(container_list) != CONTAINER_LENGTH - 1:
                 continue
-            if container_name == "quads":
-                fill_empty_quad_value(index, hole_grid, target_number)
+            elif container_name == "quads":
+                row_range, col_range = get_quad_range(index)
+            elif container_name == "rows":
+                row_range, col_range = get_row_range(index)
+            elif container_name == "cols":
+                row_range, col_range = get_column_range(index)
+            else:
                 continue
-            if container_name == "rows":
-                fill_empty_row_value(index, hole_grid, target_number)
-                continue
-            if container_name == "cols":
-                fill_empty_column_value(index, hole_grid, target_number)
-                continue
+            fill_hole_in_range(row_range, col_range, hole_grid, target_number)
 
 
 def slice_and_dice_all_numbers(containers, numbers=NUMBERS):
@@ -196,7 +208,7 @@ def slice_and_dice_all_numbers(containers, numbers=NUMBERS):
     for target_number in numbers:
         hole_grid = get_slice_and_dice_grid(containers, target_number)
         slice_and_dice_containers = get_new_containers()
-        update_containers(slice_and_dice_containers, hole_grid)
+        update_slice_and_dice_containers(slice_and_dice_containers, hole_grid)
         fill_holes(slice_and_dice_containers, hole_grid, target_number)
 
 
@@ -204,6 +216,13 @@ def get_new_containers():
     quadrants = DefaultDict(list)
     rows = DefaultDict(list)
     columns = DefaultDict(list)
+    return {"quads": quadrants, "rows": rows, "cols": columns}
+
+
+def get_new_elimination_containers():
+    quadrants = DefaultDict(dict)
+    rows = DefaultDict(dict)
+    columns = DefaultDict(dict)
     return {"quads": quadrants, "rows": rows, "cols": columns}
 
 
@@ -224,7 +243,7 @@ def find_potential_numbers(containers, row, col):
     return potentials
 
 
-def eliminate(containers, grid=GRID):
+def build_elimination_grid(containers, grid=GRID):
     potential_grid = copy.deepcopy(grid)
     for row, row_list in enumerate(grid):
         for col, value in enumerate(row_list):
@@ -235,6 +254,31 @@ def eliminate(containers, grid=GRID):
                     potential_grid[row][col] = potentials[0]
                 else:
                     potential_grid[row][col] = potentials
+    return potential_grid
+
+
+def build_elimination_containers(elimination_grid):
+    elimination_containers = get_new_elimination_containers()
+    update_elimination_containers(elimination_containers, elimination_grid)
+    return elimination_containers
+
+
+def eliminate_options(options_list, elimination_grid):
+    option_dict = DefaultDict(int)
+    for (row, col), options in options_list:
+        option_dict[options] += 1
+
+
+def option_elimination(elimination_containers, elimination_grid):
+    for containers_group in elimination_containers.values():
+        for options_list in containers_group.values():
+            eliminate_options(options_list, elimination_grid)
+
+
+def eliminate(containers):
+    elimination_grid = build_elimination_grid(containers)
+    elimination_containers = build_elimination_containers(elimination_grid)
+    option_elimination(elimination_containers, elimination_grid)
 
 
 def main():
@@ -243,7 +287,7 @@ def main():
         last_grid = None
         while last_grid != GRID:
             last_grid = copy.deepcopy(GRID)
-            update_containers(containers)
+            update_slice_and_dice_containers(containers)
             slice_and_dice_all_numbers(containers)
             print("slice and dice round:")
             pprint(GRID)
@@ -251,7 +295,7 @@ def main():
         last_grid = None
         while last_grid != GRID:
             last_grid = copy.deepcopy(GRID)
-            update_containers(containers)
+            update_slice_and_dice_containers(containers)
             eliminate(containers)
             print("elimination round:")
             pprint(GRID)
