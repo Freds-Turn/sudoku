@@ -9,6 +9,17 @@ CONTAINER_LENGTH = QUADRANT_LENGTH ** 2
 
 
 NUMBERS = list(range(1, CONTAINER_LENGTH + 1))
+PUZZLE_13 = [
+    [0, 8, 2, 0, 0, 3, 5, 4, 0],
+    [0, 0, 0, 0, 0, 2, 0, 8, 0],
+    [0, 0, 7, 0, 0, 1, 0, 0, 0],
+    [0, 0, 0, 0, 0, 5, 0, 7, 0],
+    [0, 0, 0, 6, 0, 0, 0, 3, 0],
+    [0, 9, 6, 0, 0, 0, 4, 0, 0],
+    [2, 0, 8, 0, 0, 6, 0, 5, 4],
+    [9, 7, 0, 5, 0, 0, 0, 6, 0],
+    [0, 5, 0, 3, 0, 8, 1, 9, 2],
+]
 GRID53 = [
     [0, 6, 7, 0, 0, 8, 0, 0, 0],
     [1, 0, 0, 0, 9, 0, 4, 0, 0],
@@ -44,7 +55,7 @@ GRID150 = [
     [9, 0, 0, 0, 0, 0, 0, 0, 0],
 ]
 
-GRID = GRID149
+GRID = GRID150
 
 
 def get_quadrant_row_start(row, base=QUADRANT_LENGTH):
@@ -277,8 +288,8 @@ def option_elimination(elimination_containers, elimination_grid):
 
 def eliminate(containers):
     elimination_grid = build_elimination_grid(containers)
-    elimination_containers = build_elimination_containers(elimination_grid)
-    option_elimination(elimination_containers, elimination_grid)
+    # elimination_containers = build_elimination_containers(elimination_grid)
+    # option_elimination(elimination_containers, elimination_grid)
 
 
 def main():
