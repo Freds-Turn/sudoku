@@ -274,22 +274,36 @@ def build_elimination_containers(elimination_grid):
     return elimination_containers
 
 
-def eliminate_options(options_list, elimination_grid):
-    option_dict = DefaultDict(int)
-    for (row, col), options in options_list:
-        option_dict[options] += 1
+def eliminate_options(options_list_dict):
+    """options_list_dict = {(row,col) : [list of potential values], ...."""
+    option_sums_dict = {}
+    for (row, col), options in options_list_dict.items():
+        option_set = set(options)
+        option_tuple = tuple(options)
+
+        for existing_option in option_sums_dict:
+            if option_set.issubset(set(existing_option)):
+                option_sums_dict[existing_option] += 1
+        if option_tuple not in option_sums_dict:
+            option_sums_dict[option_tuple] = 1
+
+    for combo, sum in option_sums_dict.items():
+        if len(combo) <= sum:
+            print(combo)
 
 
-def option_elimination(elimination_containers, elimination_grid):
+def option_elimination(elimination_containers):
     for containers_group in elimination_containers.values():
         for options_list in containers_group.values():
-            eliminate_options(options_list, elimination_grid)
+            print(options_list)
+            eliminate_options(options_list)
 
 
 def eliminate(containers):
     elimination_grid = build_elimination_grid(containers)
-    # elimination_containers = build_elimination_containers(elimination_grid)
-    # option_elimination(elimination_containers, elimination_grid)
+    elimination_containers = build_elimination_containers(elimination_grid)
+    # print(elimination_containers)
+    option_elimination(elimination_containers)
 
 
 def main():
