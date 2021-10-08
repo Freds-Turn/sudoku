@@ -9,6 +9,50 @@ CONTAINER_LENGTH = QUADRANT_LENGTH ** 2
 
 
 NUMBERS = list(range(1, CONTAINER_LENGTH + 1))
+BLANK = [
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+]
+PUZZLE_50_EXPERT = [
+    [3, 9, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 4, 5, 0, 0, 0, 0],
+    [0, 8, 6, 0, 0, 0, 0, 2, 0],
+    [0, 0, 1, 0, 0, 0, 0, 0, 0],
+    [4, 0, 0, 0, 0, 0, 3, 0, 0],
+    [0, 0, 7, 5, 0, 0, 0, 4, 8],
+    [0, 0, 2, 8, 6, 0, 0, 0, 0],
+    [7, 6, 0, 0, 1, 2, 8, 0, 0],
+    [0, 0, 0, 0, 0, 4, 0, 0, 9],
+]
+PUZZLE_47_SEMI_HARD = [
+    [0, 0, 0, 0, 0, 0, 0, 0, 8],
+    [7, 0, 0, 0, 3, 0, 0, 1, 0],
+    [0, 8, 0, 0, 7, 2, 0, 5, 0],
+    [0, 0, 0, 4, 0, 0, 0, 0, 7],
+    [0, 5, 9, 0, 0, 0, 0, 6, 0],
+    [1, 3, 0, 0, 0, 0, 0, 0, 9],
+    [8, 0, 0, 0, 0, 0, 0, 7, 0],
+    [0, 0, 5, 0, 1, 9, 0, 4, 0],
+    [0, 0, 4, 0, 0, 3, 0, 0, 0],
+]
+PUZZLE_48_SEMI_HARD = [
+    [0, 0, 0, 3, 0, 0, 0, 0, 0],
+    [0, 0, 4, 0, 8, 6, 0, 0, 0],
+    [1, 0, 0, 7, 0, 9, 5, 0, 0],
+    [0, 0, 0, 9, 0, 0, 0, 4, 3],
+    [0, 0, 0, 0, 0, 1, 0, 8, 0],
+    [9, 0, 0, 0, 0, 0, 1, 0, 2],
+    [4, 1, 8, 0, 0, 0, 0, 0, 0],
+    [0, 3, 0, 0, 0, 0, 0, 0, 7],
+    [5, 0, 0, 8, 3, 0, 0, 0, 6],
+]
 PUZZLE_13 = [
     [0, 8, 2, 0, 0, 3, 5, 4, 0],
     [0, 0, 0, 0, 0, 2, 0, 8, 0],
@@ -55,7 +99,7 @@ GRID150 = [
     [9, 0, 0, 0, 0, 0, 0, 0, 0],
 ]
 
-GRID = GRID150
+GRID = PUZZLE_50_EXPERT
 
 
 def get_quadrant_row_start(row, base=QUADRANT_LENGTH):
@@ -277,7 +321,7 @@ def build_elimination_containers(elimination_grid):
 def eliminate_options(options_list_dict):
     """options_list_dict = {(row,col) : [list of potential values], ...."""
     option_sums_dict = {}
-    for (row, col), options in options_list_dict.items():
+    for options in options_list_dict.values():
         option_set = set(options)
         option_tuple = tuple(options)
 
@@ -288,14 +332,19 @@ def eliminate_options(options_list_dict):
             option_sums_dict[option_tuple] = 1
 
     for combo, sum in option_sums_dict.items():
-        if len(combo) <= sum:
-            print(combo)
+        combo_length = len(combo)
+        if combo_length <= sum:
+            for (row, col), options in options_list_dict.items():
+                if len(options) - combo_length == 1:
+                    for option in options:
+                        if option not in combo:
+                            GRID[row][col] = option
 
 
 def option_elimination(elimination_containers):
     for containers_group in elimination_containers.values():
         for options_list in containers_group.values():
-            print(options_list)
+            # print(options_list)
             eliminate_options(options_list)
 
 
@@ -308,7 +357,7 @@ def eliminate(containers):
 
 def main():
     containers = get_new_containers()
-    for _ in range(2):
+    for _ in range(5):
         last_grid = None
         while last_grid != GRID:
             last_grid = copy.deepcopy(GRID)
@@ -317,13 +366,10 @@ def main():
             print("slice and dice round:")
             pprint(GRID)
 
-        last_grid = None
-        while last_grid != GRID:
-            last_grid = copy.deepcopy(GRID)
-            update_slice_and_dice_containers(containers)
-            eliminate(containers)
-            print("elimination round:")
-            pprint(GRID)
+        update_slice_and_dice_containers(containers)
+        eliminate(containers)
+        print("elimination round:")
+        pprint(GRID)
 
 
 if __name__ == "__main__":
