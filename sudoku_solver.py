@@ -20,13 +20,24 @@ BLANK = [
     [0, 0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0, 0],
 ]
+PUZZLE_51_EXPERT = [
+    [0, 0, 3, 0, 0, 0, 0, 0, 0],
+    [0, 0, 1, 0, 9, 0, 8, 0, 0],
+    [0, 0, 2, 0, 0, 1, 0, 0, 7],
+    [9, 0, 0, 7, 0, 0, 0, 0, 0],
+    [0, 0, 4, 0, 1, 0, 0, 0, 3],
+    [0, 1, 0, 0, 8, 2, 0, 0, 5],
+    [0, 0, 0, 9, 7, 0, 3, 0, 0],
+    [4, 8, 0, 0, 0, 0, 0, 9, 0],
+    [0, 0, 0, 4, 0, 0, 0, 0, 0],
+]
 PUZZLE_50_EXPERT = [
     [3, 9, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 4, 5, 0, 0, 0, 0],
     [0, 8, 6, 0, 0, 0, 0, 2, 0],
     [0, 0, 1, 0, 0, 0, 0, 0, 0],
     [4, 0, 0, 0, 0, 0, 3, 0, 0],
-    [0, 0, 7, 5, 0, 0, 0, 4, 8],
+    [0, 0, 5, 7, 0, 0, 0, 4, 8],
     [0, 0, 2, 8, 6, 0, 0, 0, 0],
     [7, 6, 0, 0, 1, 2, 8, 0, 0],
     [0, 0, 0, 0, 0, 4, 0, 0, 9],
@@ -99,7 +110,7 @@ GRID150 = [
     [9, 0, 0, 0, 0, 0, 0, 0, 0],
 ]
 
-GRID = PUZZLE_50_EXPERT
+GRID = PUZZLE_51_EXPERT
 
 
 def get_quadrant_row_start(row, base=QUADRANT_LENGTH):
@@ -335,10 +346,15 @@ def eliminate_options(options_list_dict):
         combo_length = len(combo)
         if combo_length <= sum:
             for (row, col), options in options_list_dict.items():
-                if len(options) - combo_length == 1:
-                    for option in options:
-                        if option not in combo:
-                            GRID[row][col] = option
+                if len(options) - combo_length == 1 and combo_length <= 3:
+                    match = True
+                    for value in combo:
+                        if value not in options:
+                            match = False
+                    if match:
+                        for option in options:
+                            if option not in combo:
+                                GRID[row][col] = option
 
 
 def option_elimination(elimination_containers):
